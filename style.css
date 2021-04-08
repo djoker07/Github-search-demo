@@ -13,7 +13,6 @@ body {
   align-items: center;
   justify-content: center;
   height: 100vh;
-  /* overflow: hidden; */
   margin: 0;
 }
 
@@ -99,17 +98,6 @@ body {
   font-size: 0.9rem;
   margin-left: 0.5rem;
 }
-
-/* #repos {
-  display: flex;
-  flex-direction: column;
-
-  justify-content: center;
-
-  align-content: center;
-  text-align: center;
-  margin: auto;
-} */
 
 .repo {
   text-decoration: none;
