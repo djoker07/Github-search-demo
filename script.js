@@ -22,9 +22,12 @@ async function getResults(entry) {
             length: data.items.length,
             current_index: 0,
             current_page: 1, 
-            // total_pages: Math.floor(data.items.length / PAGE_SIZE)
+            total_pages: Math.floor(data.items.length / PAGE_SIZE)
         }
-        controls.style.visibility = 'visible'
+        if (results.length > PAGE_SIZE) {
+            controls.style.visibility = 'visible'
+            page.innerHTML = `${results.current_page} / ${results.total_pages}`
+        }
         createCards()
     } catch(err) {
         console.log(err);
@@ -120,7 +123,7 @@ function addReposToCard(repos, username) {
 form.addEventListener('submit', (e) => {
     e.preventDefault()
     main.innerHTML = ''
-    
+    page.innerHTML = 1
     const entry = search.value
 
     if(entry) {
@@ -135,7 +138,7 @@ prev.addEventListener('click', () => {
     if(results.current_index - PAGE_SIZE > -1) {
         results.current_index -= PAGE_SIZE
         results.current_page -= 1
-        page.innerHTML = results.current_page
+        page.innerHTML = `${results.current_page} / ${results.total_pages}`
         createCards()
     }
 
@@ -147,7 +150,7 @@ next.addEventListener('click', () => {
     if(results.current_index + PAGE_SIZE < results.length) {
         results.current_index += PAGE_SIZE
         results.current_page += 1
-        page.innerHTML = results.current_page
+        page.innerHTML = `${results.current_page} / ${results.total_pages}`
         createCards()
     }
     
