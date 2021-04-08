@@ -14,21 +14,30 @@ let results = {
     current_page: 1
 };
 
+// FETCHING FUNCTIONS
 async function getResults(entry) {
     try {
         const { data } = await axios(SEARCH_URL + entry)
-        results = {
-            data: data.items,
-            length: data.items.length,
-            current_index: 0,
-            current_page: 1, 
-            total_pages: Math.floor(data.items.length / PAGE_SIZE)
+
+        if(data.items.length !== 0) {
+
+            results = {
+                data: data.items,
+                length: data.items.length,
+                current_index: 0,
+                current_page: 1, 
+                total_pages: Math.floor(data.items.length / PAGE_SIZE)
+            }
+            if (results.length > PAGE_SIZE) {
+                controls.style.visibility = 'visible'
+                page.innerHTML = `${results.current_page} / ${results.total_pages}`
+            }
+            createCards()
         }
-        if (results.length > PAGE_SIZE) {
-            controls.style.visibility = 'visible'
-            page.innerHTML = `${results.current_page} / ${results.total_pages}`
+        else {
+            createErrorCard("No users found")
         }
-        createCards()
+
     } catch(err) {
         console.log(err);
         createErrorCard('Problem fetching profiles')
@@ -41,6 +50,9 @@ async function getUser(username) {
         createUserCard(data)
         getRepos(username)
     } catch(err) {
+        if(err.response.status == 403) {
+            createErrorCard('API Request Limit met, wait a few minutes and try again.')
+        }
         if(err.response.status == 404) {
             createErrorCard('No profile with this username')
         }
@@ -52,17 +64,23 @@ async function getRepos(username) {
         const { data } = await axios(USER_URL + username + '/repos?sort=created')
         addReposToCard(data, username)
     } catch(err) {
-        createErrorCard('Problem fetching repos')
+        if(err.response.status == 403) {
+            createErrorCard('API Request Limit met, wait a few minutes and try again.')
+        }
+        else {
+            // console.log(err);
+            createErrorCard('Problem fetching repos')
+        }
     }
 }
 
+// CONTENT CREATION
 function createCards() {
     main.innerHTML = ''
     for (let i = 0; i < PAGE_SIZE; i++) {
         if(results.data[results.current_index + i]) {
             getUser(results.data[results.current_index + i].login) 
-        }
-        
+        }        
     }
 }
 
@@ -101,7 +119,6 @@ function createErrorCard(msg) {
             <h1>${msg}</h1>
         </div>
     `
-
     main.innerHTML = cardHTML
 }
 
@@ -120,6 +137,7 @@ function addReposToCard(repos, username) {
     }
 }
 
+// EVENT LISTENERS
 form.addEventListener('submit', (e) => {
     e.preventDefault()
     main.innerHTML = ''
@@ -128,13 +146,11 @@ form.addEventListener('submit', (e) => {
 
     if(entry) {
         getResults(entry)
-
         search.value = ''
     }
 })
 
 prev.addEventListener('click', () => {
-    console.log("click previous");
     if(results.current_index - PAGE_SIZE > -1) {
         results.current_index -= PAGE_SIZE
         results.current_page -= 1
@@ -144,9 +160,7 @@ prev.addEventListener('click', () => {
 
 })
 
-next.addEventListener('click', () => {
-    console.log("click next");
-    
+next.addEventListener('click', () => {  
     if(results.current_index + PAGE_SIZE < results.length) {
         results.current_index += PAGE_SIZE
         results.current_page += 1
